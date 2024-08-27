@@ -63,10 +63,12 @@ enum DebugLevel {
 
 struct Products {
   DateTime endDate;
+  string documentName;
   String name;
   String openMsg;
   String closeMsg;
   bool status;
+  bool statusBefore;
 };
 
 struct SystemVariable {

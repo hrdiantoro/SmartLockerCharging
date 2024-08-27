@@ -30,11 +30,20 @@ void wifiConTask() {
             "products", LOCKER_TOTAL, [](JsonVariant res, size_t pageSize) {
               // serializeJsonPretty(res, Serial);
               for (int i = 0; i < pageSize; i++) {
+                var.locker[i].documentName = firebase.firestoreGetDocumentId(res[i]);
                 var.locker[i].endDate = DateTime(res[i]["fields"]["endDate"]["stringValue"].as<String>().c_str());
                 var.locker[i].name = res[i]["fields"]["nama_loker"]["stringValue"].as<String>();
                 var.locker[i].openMsg = res[i]["fields"]["pesan_buka"]["stringValue"].as<String>();
                 var.locker[i].closeMsg = res[i]["fields"]["pesan_tutup"]["stringValue"].as<String>();
                 // var.locker[i].status = res[i]["fields"]["status"]["booleanValue"].as<bool>();
+
+                bool status = var.nowDate < var.locker[i].endDate;
+                if(!status) {
+                  firebase.firestoreUpdateDocument("products", var.locker[i].documentName,[](JsonVariant res) {
+                    res["fields"]["status"]["booleanValue"] = false;
+                    return res;
+                  });
+                }
               }
             },
             FirebaseModule::resultStatusCallback);
