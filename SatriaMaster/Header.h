@@ -63,7 +63,7 @@ enum DebugLevel {
 
 struct Products {
   DateTime endDate;
-  string documentName;
+  String documentName;
   String name;
   String openMsg;
   String closeMsg;
