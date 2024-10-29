@@ -77,7 +77,7 @@ struct SystemVariable {
   int magneticState[LOCKER_TOTAL];
   int magneticStateBefore[LOCKER_TOTAL];
   DateTime nowDate = DateTime("2000-01-01T00:00:00");
-  int debugLevel = 0;
+  int debugLevel = DEBUG_NULL;
 };
 
 SystemVariable var;

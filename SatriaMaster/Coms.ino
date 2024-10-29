@@ -1,4 +1,7 @@
 void onReceive(const String& recvMsg) {
+  uint32_t startTime, endTime, delayTime;
+  startTime = micros();
+
   // Serial.print(F("| recvMsg: "));
   // Serial.println(recvMsg);
   String dataHeader = usbSerial.getStrData(recvMsg, 0, "#");
@@ -15,12 +18,30 @@ void onReceive(const String& recvMsg) {
     if (var.firebaseReady) {
       for (int i = 0; i < LOCKER_TOTAL; i++) {
         if (var.locker[i].status) {
-          if (dataHeader == "BUKA" + String(i + 1)) solenoid[i].on();    // BUKA1
-          if (dataHeader == "TUTUP" + String(i + 1)) solenoid[i].off();  // TUTUP1
+          endTime = micros();
+          delayTime = endTime - startTime;
+          float delayTimeF = (float)delayTime;
+
+          if (dataHeader == "BUKA" + String(i + 1)) {  // BUKA1
+            solenoid[i].on();
+            Serial.print("| BUKA " + String(i + 1) + ": ");
+            Serial.print("| delayTimeF: ");
+            Serial.print(delayTimeF);
+            Serial.print(" microSeconds");
+            Serial.println();
+          }
+          if (dataHeader == "TUTUP" + String(i + 1)) {  // TUTUP1
+            solenoid[i].off();
+            Serial.print("| TUTUP " + String(i + 1) + ": ");
+            Serial.print("| delayTimeF: ");
+            Serial.print(delayTimeF);
+            Serial.print(" microSeconds");
+            Serial.println();
+          }
         }
       }
-      Serial.print(F("| recvMsg: "));
-      Serial.println(recvMsg);
+      // Serial.print(F("| recvMsg: "));
+      // Serial.println(recvMsg);
     }
   }
 }

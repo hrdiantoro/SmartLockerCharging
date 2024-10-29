@@ -10,7 +10,7 @@
 #include "Kinematrix.h"
 #include "configHeader.h"
 
-#define SLAVE_ADDRESS 3
+#define SLAVE_ADDRESS 1  // sesuaikan urutan loker
 
 const char* ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 7 * 3600;  // Offset for WIB (UTC+7)
@@ -33,6 +33,7 @@ enum SystemEnum {
   SYSTEM_DISABLE,
   SYSTEM_ENABLE,
   SYSTEM_TESTING,
+  SYSTEM_DEBUG,
 };
 
 int camStateInitCamera = SYSTEM_ENABLE;
@@ -76,6 +77,13 @@ void loop() {
   } else if (camStateInitCamera == SYSTEM_TESTING) {
     captureAndSaveToFirebase();
     delay(20000);
+  } else if (camStateInitCamera == SYSTEM_DEBUG) {
+    if (Serial.available() > 0) {
+      int state = Serial.readStringUntil('\n').toInt();
+      if (state) {
+        captureAndSaveToFirebase();
+      }
+    }
   }
 
   usbSerial.receiveString(onReceive);
@@ -87,6 +95,9 @@ void loop() {
 }
 
 void captureAndSaveToFirebase() {
+  uint32_t startTime, endTime, delayTime;
+  startTime = millis();
+
   camFlashLight.on();
   capturePhotoSaveLittleFS();
   camFlashLight.off();
@@ -95,21 +106,46 @@ void captureAndSaveToFirebase() {
     delay(50);
   }
   camFlashLight.off();
-  Serial.print("Uploading picture... ");
+
+  endTime = millis();
 
   String epoch = String(getTime() + gmtOffset_sec);
   String address = String(SLAVE_ADDRESS);
 
+  Serial.print("Uploading picture... ");
+
+  // if (Firebase.Storage.upload(
+  //       &fbdo,                                            /* Firebase data object */
+  //       STORAGE_BUCKET_ID,                                /* Firebase Storage bucket id */
+  //       FILE_PHOTO_PATH,                                  /* path to local file */
+  //       mem_storage_type_flash,                           /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */
+  //       "/Loker " + address + "/photo_" + epoch + ".jpg", /* path of remote file stored in the bucket */
+  //       "image/jpeg",                                     /* mime type */
+  //       fcsUploadCallback)) {
+  //   // Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
+  // } else {
+  //   // Serial.println(fbdo.errorReason());
+  // }
+
   if (Firebase.Storage.upload(
-        &fbdo,                                            /* Firebase data object */
-        STORAGE_BUCKET_ID,                                /* Firebase Storage bucket id */
-        FILE_PHOTO_PATH,                                  /* path to local file */
-        mem_storage_type_flash,                           /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */
-        "/Loker " + address + "/photo_" + epoch + ".jpg", /* path of remote file stored in the bucket */
-        "image/jpeg",                                     /* mime type */
+        &fbdo,                              /* Firebase data object */
+        STORAGE_BUCKET_ID,                  /* Firebase Storage bucket id */
+        FILE_PHOTO_PATH,                    /* path to local file */
+        mem_storage_type_flash,             /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */
+        "/Loker " + address + "/photo.jpg", /* path of remote file stored in the bucket */
+        "image/jpeg",                       /* mime type */
         fcsUploadCallback)) {
-    Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
+    // Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
   } else {
-    Serial.println(fbdo.errorReason());
+    // Serial.println(fbdo.errorReason());
   }
+
+  // endTime = millis();
+  delayTime = endTime - startTime;
+  float delayTimeF = (float)delayTime / 1000.f;
+
+  Serial.print("| delayTimeF: ");
+  Serial.print(delayTimeF);
+  Serial.print(" seconds");
+  Serial.println();
 }

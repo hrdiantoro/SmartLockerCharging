@@ -38,8 +38,8 @@ void wifiConTask() {
                 // var.locker[i].status = res[i]["fields"]["status"]["booleanValue"].as<bool>();
 
                 bool status = var.nowDate < var.locker[i].endDate;
-                if(!status) {
-                  firebase.firestoreUpdateDocument("products", var.locker[i].documentName,[](JsonVariant res) {
+                if (!status) {
+                  firebase.firestoreUpdateDocument("products", var.locker[i].documentName, [](JsonVariant res) {
                     res["fields"]["status"]["booleanValue"] = false;
                     return res;
                   });
